@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import StudentWrite from './StudentWrite';
 import StudentWall from './StudentWall';
 import StudentPortfolio from './StudentPortfolio';
+import { Footer } from '../../components/ui';
 
 const TABS = [
   { id: 'write', label: '일지 쓰기' },
@@ -37,6 +38,7 @@ export default function StudentApp({ student, onSignOut }) {
         {tab === 'wall' && <StudentWall student={student} />}
         {tab === 'me' && <StudentPortfolio student={student} />}
       </main>
+      <Footer />
     </div>
   );
 }

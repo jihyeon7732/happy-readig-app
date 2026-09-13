@@ -4,7 +4,7 @@ import TeacherApp from './pages/teacher/TeacherApp';
 import StudentApp from './pages/student/StudentApp';
 import { watchAuth, signInStudentAnon, signOutAll } from './lib/firebase';
 import { load, save, drop } from './lib/utils';
-import { Spinner } from './components/ui';
+import { Spinner, Footer } from './components/ui';
 
 const KEY = 'myeongil.student.v1';
 
@@ -48,6 +48,7 @@ export default function App() {
         <div className="row">
           <Spinner /> <span className="counter">접속하는 중</span>
         </div>
+        <Footer />
       </div>
     );
   }
@@ -59,6 +60,7 @@ export default function App() {
           <h2 style={{ marginBottom: 8 }}>연결할 수 없습니다</h2>
           <p className="err">{fatal}</p>
         </div>
+        <Footer />
       </div>
     );
   }

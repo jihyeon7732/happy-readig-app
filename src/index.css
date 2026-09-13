@@ -168,6 +168,14 @@ textarea {
   max-width: 760px;
 }
 
+.site-footer {
+  padding: 14px 20px 18px;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--ink-faint);
+  border-top: 1px solid var(--paper-line);
+}
+
 .stack {
   display: flex;
   flex-direction: column;
@@ -915,7 +923,8 @@ mark.praise.removable:hover {
 @media print {
   .topbar,
   .btn,
-  .tabs {
+  .tabs,
+  .site-footer {
     display: none !important;
   }
   body {

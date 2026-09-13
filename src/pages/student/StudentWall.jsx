@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { listSessions, listEntriesBySession } from '../../lib/db';
 import HighlightBody from '../../components/HighlightBody';
 import { Spinner, useToast, Empty, Trophy } from '../../components/ui';
-import { fmtDate } from '../../lib/utils';
+import { fmtDate, seededShuffle } from '../../lib/utils';
 
 export default function StudentWall({ student }) {
   const toast = useToast();
@@ -34,13 +34,9 @@ export default function StudentWall({ student }) {
       .finally(() => setLoading(false));
   }, [sessionId]);
 
-  /* 번호 순서를 그대로 쓰면 누구인지 추측할 수 있으므로 회차 id로 섞은 익명 번호를 붙입니다. */
+  /* 번호 순서를 그대로 쓰면 누구인지 추측할 수 있으므로 회차마다 완전히 뒤섞은 뒤 익명 번호를 붙입니다. */
   const cards = useMemo(() => {
-    const seed = [...sessionId].reduce((a, c) => a + c.charCodeAt(0), 0);
-    const shuffled = [...entries]
-      .map((e, i) => ({ e, k: ((i + 1) * 9301 + seed * 49297) % 233280 }))
-      .sort((a, b) => a.k - b.k)
-      .map(({ e }, i) => ({ ...e, alias: `익명 ${i + 1}` }));
+    const shuffled = seededShuffle(entries, sessionId).map((e, i) => ({ ...e, alias: `익명 ${i + 1}` }));
     const honor = shuffled.filter((e) => e.honor);
     const rest = shuffled.filter((e) => !e.honor);
     return { honor, rest };

@@ -146,3 +146,8 @@ export function Empty({ title, children }) {
     </div>
   );
 }
+
+/* ---------------- 하단 크레딧 ---------------- */
+export function Footer() {
+  return <footer className="site-footer">교사 김지현에 의해 제작됨</footer>;
+}

@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import TeacherRoster from './TeacherRoster';
 import TeacherSessions from './TeacherSessions';
 import TeacherGrading from './TeacherGrading';
 import TeacherStats from './TeacherStats';
 import TeacherWall from './TeacherWall';
+import { Modal, Footer } from '../../components/ui';
 import { load, save } from '../../lib/utils';
 
 const TABS = [
@@ -15,10 +16,67 @@ const TABS = [
 ];
 
 const KEY = 'myeongil.teacher.class';
+const GUIDE_KEY = 'myeongil.teacher.guideSeen';
+
+const GUIDE_STEPS = [
+  {
+    title: '1. 학생 명단 등록',
+    desc: '상단에서 학년·반을 고른 뒤 "학생 명단" 탭에서 이름을 등록하고 "비밀번호 생성하기"를 눌러 4자리 코드를 만들어 학생들에게 나눠 주세요.',
+  },
+  {
+    title: '2. 회차 열기',
+    desc: '수업 전 "회차 관리"에서 날짜·교시·회차 번호를 정해 회차를 엽니다. 회차가 열려 있어야 학생이 일지를 쓸 수 있습니다.',
+  },
+  {
+    title: '3. 채점하기',
+    desc: '"채점" 탭에서 칭찬할 문장을 드래그해 형광펜을 남기고(잘못 남겼으면 마크를 클릭하면 지워집니다), 상/하 도장(단축키 1, 2)을 찍습니다. "AI 피드백 생성하기"로 반 전체 피드백을 한 번에 만들 수 있고, 특히 잘 쓴 글은 명예의 전당(회차당 3명, 다시 누르면 해제)에 올릴 수 있습니다.',
+  },
+  {
+    title: '4. 담벼락 확인',
+    desc: '학생들이 보는 것과 같은 글을 "담벼락" 탭에서 회차별로 볼 수 있습니다. 학생 화면과 달리 이름이 그대로 보입니다.',
+  },
+  {
+    title: '5. 학급 통계 확인',
+    desc: '제출·상/하 도장·명예의 전당 현황을 한눈에 보고, "전체 학생 성장 평가서 일괄 생성"으로 반 전체 평가서를 한 번에 만들거나 CSV로 내려받을 수 있습니다.',
+  },
+];
+
+function TeacherGuide({ onClose }) {
+  return (
+    <Modal
+      title="선생님, 이렇게 사용하세요"
+      onClose={onClose}
+      footer={
+        <button className="btn primary" onClick={onClose}>
+          시작하기
+        </button>
+      }
+    >
+      <div className="stack">
+        {GUIDE_STEPS.map((s) => (
+          <div key={s.title} className="card flat stack" style={{ gap: 4 }}>
+            <b>{s.title}</b>
+            <p style={{ margin: 0, lineHeight: 1.7 }}>{s.desc}</p>
+          </div>
+        ))}
+      </div>
+    </Modal>
+  );
+}
 
 export default function TeacherApp({ onSignOut }) {
   const [tab, setTab] = useState('roster');
   const [cls, setCls] = useState(() => load(KEY, { grade: 3, classNum: 1 }));
+  const [showGuide, setShowGuide] = useState(false);
+
+  useEffect(() => {
+    if (!load(GUIDE_KEY, false)) setShowGuide(true);
+  }, []);
+
+  const closeGuide = () => {
+    setShowGuide(false);
+    save(GUIDE_KEY, true);
+  };
 
   const setClass = (patch) => {
     const next = { ...cls, ...patch };
@@ -71,6 +129,9 @@ export default function TeacherApp({ onSignOut }) {
         </nav>
 
         <span className="spacer" />
+        <button className="btn ghost sm" onClick={() => setShowGuide(true)}>
+          사용법
+        </button>
         <span className="who">김지현 선생님</span>
         <button className="btn ghost sm" onClick={onSignOut}>
           나가기
@@ -84,6 +145,9 @@ export default function TeacherApp({ onSignOut }) {
         {tab === 'wall' && <TeacherWall key={`w${cls.grade}${cls.classNum}`} {...shared} />}
         {tab === 'stats' && <TeacherStats key={`t${cls.grade}${cls.classNum}`} {...shared} />}
       </main>
+      <Footer />
+
+      {showGuide && <TeacherGuide onClose={closeGuide} />}
     </div>
   );
 }

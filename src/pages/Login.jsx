@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { authStudent } from '../lib/db';
 import { signInTeacher } from '../lib/firebase';
-import { Field, Spinner } from '../components/ui';
+import { Field, Spinner, Footer } from '../components/ui';
 
 export default function Login({ onSignInStudent }) {
   const [mode, setMode] = useState('student');
@@ -53,7 +53,8 @@ export default function Login({ onSignInStudent }) {
 
   return (
     <div className="login-wrap">
-      <div className="login-card stack">
+      <div className="stack" style={{ width: '100%', maxWidth: 420 }}>
+        <div className="login-card stack">
         <div>
           <p className="login-title">
             읽은 만큼,
@@ -137,6 +138,8 @@ export default function Login({ onSignInStudent }) {
             </form>
           )}
         </div>
+        </div>
+        <Footer />
       </div>
     </div>
   );

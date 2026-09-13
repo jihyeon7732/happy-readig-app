@@ -32,6 +32,42 @@ export const fmtDate = (iso) => {
   return `${Number(m)}/${Number(d)}`;
 };
 
+/** 문자열을 32비트 시드로 변환 (FNV-1a) */
+function hashSeed(str = '') {
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+/** 시드 기반 의사난수 생성기 (mulberry32) */
+function mulberry32(seed) {
+  let a = seed;
+  return () => {
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/**
+ * 같은 seedKey(회차 id 등)에서는 항상 같은 순서로, 완전히 뒤섞인 배열을 반환합니다.
+ * 번호 순서가 그대로 드러나는 회전(rotation)이 되지 않도록 진짜 Fisher-Yates 셔플을 씁니다.
+ */
+export function seededShuffle(arr, seedKey) {
+  const rand = mulberry32(hashSeed(String(seedKey)));
+  const out = [...arr];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
 /** 겹치는 하이라이트 구간을 정렬·병합 */
 export function mergeRanges(ranges = []) {
   const sorted = [...ranges].filter((r) => r && r.end > r.start).sort((a, b) => a.start - b.start);
