@@ -4,6 +4,8 @@ import {
   getAuth,
   signInAnonymously,
   signInWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
   signOut,
   onAuthStateChanged,
 } from 'firebase/auth';
@@ -24,6 +26,11 @@ export const auth = getAuth(app);
 /** 교사 계정으로 로그인. Firestore 규칙이 이 계정만 채점 권한으로 인정합니다. */
 export const signInTeacher = (email, password) =>
   signInWithEmailAndPassword(auth, email.trim(), password);
+
+const googleProvider = new GoogleAuthProvider();
+
+/** 구글 계정으로 교사 로그인. Firestore 규칙에 등록된 구글 이메일만 채점 권한을 갖습니다. */
+export const signInTeacherGoogle = () => signInWithPopup(auth, googleProvider);
 
 /** 학생은 익명 인증으로 접속하고, 신원은 명단 대조로 확인합니다. */
 export const signInStudentAnon = () => signInAnonymously(auth);

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { authStudent } from '../lib/db';
-import { signInTeacher } from '../lib/firebase';
+import { signInTeacher, signInTeacherGoogle } from '../lib/firebase';
 import { Field, Spinner, Footer } from '../components/ui';
 
 export default function Login({ onSignInStudent }) {
@@ -27,6 +27,20 @@ export default function Login({ onSignInStudent }) {
           ? '계정 또는 비밀번호가 맞지 않습니다.'
           : '로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.'
       );
+      setBusy(false);
+    }
+  };
+
+  const teacherGoogleSubmit = async () => {
+    setErr('');
+    setBusy(true);
+    try {
+      await signInTeacherGoogle(); // 성공하면 App이 자동으로 교사 화면으로 전환
+    } catch (e2) {
+      console.error(e2);
+      if (e2.code !== 'auth/popup-closed-by-user' && e2.code !== 'auth/cancelled-popup-request') {
+        setErr('구글 로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.');
+      }
       setBusy(false);
     }
   };
@@ -133,6 +147,14 @@ export default function Login({ onSignInStudent }) {
               {err && <p className="err">{err}</p>}
               <button className="btn wood block" disabled={busy}>
                 {busy ? <Spinner /> : '관리자로 들어가기'}
+              </button>
+              <div className="row" style={{ alignItems: 'center', gap: 8 }}>
+                <hr style={{ flex: 1 }} />
+                <span className="counter">또는</span>
+                <hr style={{ flex: 1 }} />
+              </div>
+              <button type="button" className="btn block" disabled={busy} onClick={teacherGoogleSubmit}>
+                구글 계정으로 로그인
               </button>
               <p className="counter">Firebase 콘솔에 등록한 교사 계정으로 로그인합니다.</p>
             </form>

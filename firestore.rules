@@ -6,8 +6,8 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function teacherEmail() {
-      return 'teacher@naver.com';
+    function teacherEmails() {
+      return ['teacher@naver.com', 'wlgus7732@gmail.com'];
     }
 
     function signedIn() {
@@ -16,8 +16,9 @@ service cloud.firestore {
 
     function isTeacher() {
       return signedIn()
-        && request.auth.token.email == teacherEmail()
-        && request.auth.token.firebase.sign_in_provider == 'password';
+        && request.auth.token.email in teacherEmails()
+        && (request.auth.token.firebase.sign_in_provider == 'password'
+            || request.auth.token.firebase.sign_in_provider == 'google.com');
     }
 
     // 학생이 자기 일지를 낼 때 건드릴 수 있는 항목만 허용
