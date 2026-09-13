@@ -1,0 +1,50 @@
+rules_version = '2';
+
+// Firebase 콘솔 > Firestore Database > 규칙 탭에 그대로 붙여넣고 [게시]를 누르세요.
+// 아래 이메일은 Firebase Authentication에 만들어 둔 선생님 계정과 반드시 같아야 합니다.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function teacherEmail() {
+      return 'teacher@naver.com';
+    }
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isTeacher() {
+      return signedIn()
+        && request.auth.token.email == teacherEmail()
+        && request.auth.token.firebase.sign_in_provider == 'password';
+    }
+
+    // 학생이 자기 일지를 낼 때 건드릴 수 있는 항목만 허용
+    function studentWritableOnly() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+        .hasOnly(['bookTitle','pageStart','pageEnd','keywords','body','updatedAt']);
+    }
+
+    // 명단: 로그인 확인은 개별 문서 조회(get)로만. 명단 전체 조회(list)는 선생님만.
+    match /students/{studentId} {
+      allow get: if signedIn();
+      allow list: if isTeacher();
+      allow create, update, delete: if isTeacher();
+    }
+
+    // 회차: 학생은 읽기만, 만들고 닫는 것은 선생님만.
+    match /sessions/{sessionId} {
+      allow read: if signedIn();
+      allow create, update, delete: if isTeacher();
+    }
+
+    // 일지: 학생은 본문만 쓰고, 도장·형광펜·피드백·명예의 전당은 선생님만 바꿉니다.
+    match /entries/{entryId} {
+      allow read: if signedIn();
+      allow create: if signedIn();
+      allow update: if isTeacher() || (signedIn() && studentWritableOnly());
+      allow delete: if isTeacher();
+    }
+  }
+}

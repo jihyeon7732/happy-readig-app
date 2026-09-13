@@ -1,0 +1,86 @@
+# 명일중학교 독서 포트폴리오
+
+Vite + React + Firebase(Firestore) + Gemini(Vercel 서버리스 경유)로 만든 독서 일지 웹앱입니다.
+
+## 왜 이렇게 나눴나
+
+Firebase와 Google AI Studio는 둘 중 하나를 고르는 관계가 아니라 역할이 다릅니다.
+
+- **Firebase Firestore** — 명단·회차·일지·도장·피드백을 저장하는 데이터베이스. 학기 내내 쌓이는 기록은 전부 여기에 들어갑니다.
+- **Google AI Studio(Gemini)** — 피드백 문장을 생성하는 두뇌. 저장 기능은 없습니다.
+- **Vercel 서버리스 함수(`/api/feedback`)** — Gemini 키를 감추는 중간 다리. 브라우저에서 Gemini를 직접 부르면 개발자 도구에서 키가 그대로 보이고, 유출되면 요금이 청구됩니다. 반드시 이 함수를 거칩니다.
+
+AI 호출이 실패해도 규칙 기반 엔진이 대신 피드백을 씁니다. 수업 중에 학생이 빈손으로 남는 일은 없습니다.
+
+## 설치 순서
+
+### 1. Firebase 준비 (10분)
+
+1. [Firebase 콘솔](https://console.firebase.google.com)에서 프로젝트 생성
+2. **빌드 > Firestore Database > 데이터베이스 만들기** → 위치는 `asia-northeast3(서울)`, **프로덕션 모드**로 시작
+3. **빌드 > Authentication > 시작하기** → 로그인 방법에서 두 가지를 사용 설정
+   - **익명** (학생 접속용)
+   - **이메일/비밀번호** (선생님 계정용)
+4. Authentication > **Users > 사용자 추가**에서 선생님 계정을 만듭니다
+   예) `teacher@naver.com` / 원하는 비밀번호
+5. **Firestore > 규칙** 탭에 이 저장소의 `firestore.rules` 내용을 붙여넣고 **게시**
+   - 파일 안 `teacherEmail()`의 주소를 4번에서 만든 계정과 똑같이 맞추세요
+6. **프로젝트 설정 > 내 앱 > 웹 앱 추가**로 설정값(`apiKey` 등)을 복사해 둡니다
+
+### 2. Google AI Studio 키
+
+[aistudio.google.com/apikey](https://aistudio.google.com/apikey)에서 API 키를 발급받아 둡니다. 결제가 연결된 프로젝트를 고르세요.
+
+### 3. 로컬 실행
+
+```bash
+npm install
+cp .env.example .env
+# .env를 열어 값 채우기
+npm run dev
+```
+
+`npm run dev`는 Vite만 띄우므로 `/api/feedback`이 동작하지 않습니다. AI 피드백까지 확인하려면:
+
+```bash
+npm i -g vercel
+vercel dev
+```
+
+### 4. GitHub + Vercel 배포
+
+```bash
+git init
+git add .
+git commit -m "독서 포트폴리오 첫 배포"
+git branch -M main
+git remote add origin https://github.com/<계정>/<저장소>.git
+git push -u origin main
+```
+
+Vercel에서 저장소를 Import한 뒤 **Settings > Environment Variables**에 아래를 등록하고 재배포합니다.
+
+| 이름 | 값 | 비고 |
+| --- | --- | --- |
+| `VITE_FB_API_KEY` 외 `VITE_FB_*` 6개 | Firebase 설정값 | 브라우저에 노출됨(정상) |
+| `GEMINI_API_KEY` | AI Studio 키 | **`VITE_` 붙이지 말 것** |
+| `GEMINI_MODEL` | `gemini-3.5-flash-lite` | 선택 |
+
+마지막으로 Firebase **Authentication > 설정 > 승인된 도메인**에 Vercel 주소(`○○.vercel.app`)를 추가합니다. 이걸 빠뜨리면 로그인이 막힙니다.
+
+## 수업에서 쓰는 순서
+
+1. 선생님 로그인 → **학생 명단**에 이름을 붙여넣고 **비밀번호 생성하기** → 인쇄해서 나눠 주기
+2. 수업 전 **회차 관리**에서 날짜·교시·회차를 정해 회차 열기
+3. 학생은 학번·이름·4자리 코드로 접속해 일지 작성 (공백 제외 400~600자)
+4. **채점** 탭에서 칭찬할 문장 드래그 → 상/하 도장(단축키 `1`, `2`) → 화살표로 다음 학생
+5. **AI 피드백 생성하기** 한 번으로 반 전체 피드백 생성
+6. 명예의 전당 3명 지정 → 담벼락 상단에 고정
+7. **학급 통계**에서 만점 기준을 정하면 10점 환산 점수가 자동 계산, CSV로 내려받기
+
+## 알아 두실 점
+
+- **학생 비밀번호는 교실용 잠금장치입니다.** 로그인 시 명단 문서를 조회하는 구조라, 기술을 아는 학생이 다른 학생의 4자리 코드를 알아낼 여지가 있습니다. 도장·피드백·명예의 전당은 선생님 계정만 바꿀 수 있도록 규칙으로 막아 두었으니, 성적 데이터 자체는 안전합니다. 더 강하게 잠그려면 학생 인증도 서버리스 함수 + Firebase Admin SDK로 옮기면 됩니다.
+- **비용**: Firestore 무료 한도(하루 5만 읽기)는 한 학년 규모 수업에 충분합니다. Gemini는 일지 1건당 약 1,000토큰이라 `gemini-3.5-flash-lite` 기준 한 반 30명 피드백이 몇 원 수준입니다.
+- **개인정보**: 담벼락은 익명이지만 본문에 이름이나 사적인 내용이 들어갈 수 있습니다. 명예의 전당에 올리기 전에 한 번 읽어 보시길 권합니다.
+- 학기가 끝나면 학급 통계에서 CSV를 받아 두시면 기록이 남습니다.

@@ -1,0 +1,97 @@
+/** 공백을 제외한 글자 수 */
+export const countChars = (s = '') => s.replace(/\s/g, '').length;
+
+export const MIN_CHARS = 400;
+export const MAX_CHARS = 600;
+
+/** 혼동하기 쉬운 글자(O,0,I,1)를 뺀 영문 대문자+숫자 4자리 */
+const PW_POOL = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+export function makePassword(len = 4) {
+  let out = '';
+  const buf = new Uint32Array(len);
+  crypto.getRandomValues(buf);
+  for (let i = 0; i < len; i++) out += PW_POOL[buf[i] % PW_POOL.length];
+  return out;
+}
+
+export const classKeyOf = (grade, classNum) => `${grade}-${classNum}`;
+export const studentIdOf = (grade, classNum, number) => `${grade}-${classNum}-${number}`;
+
+export const todayStr = () => {
+  const d = new Date();
+  const p = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+};
+
+export const fmtDate = (iso) => {
+  if (!iso) return '';
+  const [, m, d] = iso.split('-');
+  return `${Number(m)}/${Number(d)}`;
+};
+
+/** 겹치는 하이라이트 구간을 정렬·병합 */
+export function mergeRanges(ranges = []) {
+  const sorted = [...ranges].filter((r) => r && r.end > r.start).sort((a, b) => a.start - b.start);
+  const out = [];
+  for (const r of sorted) {
+    const last = out[out.length - 1];
+    if (last && r.start <= last.end) last.end = Math.max(last.end, r.end);
+    else out.push({ start: r.start, end: r.end });
+  }
+  return out;
+}
+
+/** 본문 문자열을 하이라이트 구간에 따라 조각으로 나눔 */
+export function splitByRanges(text = '', ranges = []) {
+  const merged = mergeRanges(ranges);
+  const parts = [];
+  let cur = 0;
+  for (const r of merged) {
+    const s = Math.max(0, Math.min(r.start, text.length));
+    const e = Math.max(s, Math.min(r.end, text.length));
+    if (s > cur) parts.push({ text: text.slice(cur, s), mark: false });
+    if (e > s) parts.push({ text: text.slice(s, e), mark: true });
+    cur = e;
+  }
+  if (cur < text.length) parts.push({ text: text.slice(cur), mark: false });
+  return parts;
+}
+
+/** 컨테이너 안의 드래그 선택 영역을 문자 인덱스로 환산 */
+export function getSelectionOffsets(root) {
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0 || sel.isCollapsed) return null;
+  const range = sel.getRangeAt(0);
+  if (!root || !root.contains(range.commonAncestorContainer)) return null;
+  const pre = range.cloneRange();
+  pre.selectNodeContents(root);
+  pre.setEnd(range.startContainer, range.startOffset);
+  const start = pre.toString().length;
+  const text = range.toString();
+  if (!text.trim()) return null;
+  const rect = range.getBoundingClientRect();
+  return { start, end: start + text.length, text, rect };
+}
+
+export const load = (k, fallback = null) => {
+  try {
+    const v = localStorage.getItem(k);
+    return v ? JSON.parse(v) : fallback;
+  } catch {
+    return fallback;
+  }
+};
+export const save = (k, v) => {
+  try {
+    localStorage.setItem(k, JSON.stringify(v));
+  } catch {
+    /* noop */
+  }
+};
+export const drop = (k) => {
+  try {
+    localStorage.removeItem(k);
+  } catch {
+    /* noop */
+  }
+};
