@@ -8,15 +8,16 @@ export function ToastHost({ children }) {
   const [items, setItems] = useState([]);
   const push = useCallback((message, tone = 'ok') => {
     const id = Math.random().toString(36).slice(2);
+    const ms = tone === 'alert' ? 6000 : 2600;
     setItems((v) => [...v, { id, message, tone }]);
-    setTimeout(() => setItems((v) => v.filter((t) => t.id !== id)), 2600);
+    setTimeout(() => setItems((v) => v.filter((t) => t.id !== id)), ms);
   }, []);
   return (
     <ToastCtx.Provider value={push}>
       {children}
       <div className="toasts" role="status" aria-live="polite">
         {items.map((t) => (
-          <div key={t.id} className={`toast ${t.tone === 'bad' ? 'bad' : ''}`}>
+          <div key={t.id} className={`toast ${t.tone !== 'ok' ? t.tone : ''}`}>
             {t.message}
           </div>
         ))}
@@ -132,6 +133,52 @@ export function Trophy({ size = 20, className = '' }) {
       <rect x="21.5" y="28" width="5" height="7" fill="#b8892b" />
       <path d="M15 40c0-3 4-4.6 9-4.6s9 1.6 9 4.6v1.4H15V40z" fill="#8a651e" />
       <rect x="14" y="35.6" width="20" height="3" rx="1.5" fill="#e8b93f" />
+    </svg>
+  );
+}
+
+/* ---------------- 손들기 아이콘 ---------------- */
+export function Hand({ size = 20, className = '' }) {
+  return (
+    <svg
+      className={`hand-icon ${className}`}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M9 12.2V5.5a1.5 1.5 0 0 1 3 0V11"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+      <path
+        d="M12 11V4.2a1.5 1.5 0 0 1 3 0V11"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+      <path
+        d="M15 11.2V6.3a1.5 1.5 0 0 1 3 0V14"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+      <path
+        d="M6 13.5V9.8a1.5 1.5 0 0 1 3 0v5.6"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+      <path
+        d="M6 14c0 4.4 2.7 7.5 7 7.5s6-3.3 6-7.5v-1"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }

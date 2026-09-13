@@ -10,6 +10,7 @@ import {
   where,
   writeBatch,
   serverTimestamp,
+  onSnapshot,
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { classKeyOf, studentIdOf, makePassword } from './utils';
@@ -17,6 +18,7 @@ import { classKeyOf, studentIdOf, makePassword } from './utils';
 const students = collection(db, 'students');
 const sessions = collection(db, 'sessions');
 const entries = collection(db, 'entries');
+const hands = collection(db, 'hands');
 
 /* ---------------- 학생 명단 ---------------- */
 
@@ -209,6 +211,46 @@ export async function toggleHonor(entry, allEntries) {
   }
   await patchEntry(entry.id, { honor: !entry.honor });
   return { ok: true, honor: !entry.honor };
+}
+
+/* ---------------- 손들기 ---------------- */
+
+/** 학생이 손을 듦 (질문 있어요) */
+export async function raiseHand(student) {
+  await setDoc(doc(hands, student.id), {
+    studentId: student.id,
+    number: student.number,
+    name: student.name,
+    grade: Number(student.grade),
+    classNum: Number(student.classNum),
+    classKey: classKeyOf(student.grade, student.classNum),
+    raisedAt: serverTimestamp(),
+  });
+}
+
+/** 손을 내림 (학생이 스스로 내리거나, 선생님이 확인 처리) */
+export async function lowerHand(studentId) {
+  await deleteDoc(doc(hands, studentId));
+}
+
+/** 지금 내 손이 들려 있는 상태인지 확인 */
+export async function getHandStatus(studentId) {
+  const snap = await getDoc(doc(hands, studentId));
+  return snap.exists();
+}
+
+/** 학급의 손든 학생 목록을 실시간으로 구독. 새로 손을 든 학생을 onRaise로 알려 줍니다. */
+export function subscribeHands(grade, classNum, onChange, onRaise) {
+  const q = query(hands, where('classKey', '==', classKeyOf(grade, classNum)));
+  return onSnapshot(q, (snap) => {
+    snap.docChanges().forEach((c) => {
+      if (c.type === 'added') onRaise?.({ id: c.doc.id, ...c.doc.data() });
+    });
+    const list = snap.docs
+      .map((d) => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => (a.raisedAt?.toMillis?.() ?? 0) - (b.raisedAt?.toMillis?.() ?? 0));
+    onChange(list);
+  });
 }
 
 /** 학생별 상/하 도장 집계 */

@@ -20,6 +20,10 @@ export function makePassword(len = 4) {
 export const classKeyOf = (grade, classNum) => `${grade}-${classNum}`;
 export const studentIdOf = (grade, classNum, number) => `${grade}-${classNum}-${number}`;
 
+/** 학번 표시용: 학년(1) + 반(2) + 번호(2), 예) 3학년 1반 1번 -> 30101 */
+export const studentNoDisplay = (grade, classNum, number) =>
+  `${grade}${String(classNum).padStart(2, '0')}${String(number).padStart(2, '0')}`;
+
 export const todayStr = () => {
   const d = new Date();
   const p = (n) => String(n).padStart(2, '0');

@@ -4,8 +4,9 @@ import TeacherSessions from './TeacherSessions';
 import TeacherGrading from './TeacherGrading';
 import TeacherStats from './TeacherStats';
 import TeacherWall from './TeacherWall';
-import { Modal, Footer } from '../../components/ui';
-import { load, save } from '../../lib/utils';
+import { Modal, Footer, Hand, useToast } from '../../components/ui';
+import { subscribeHands, lowerHand } from '../../lib/db';
+import { load, save, studentNoDisplay } from '../../lib/utils';
 
 const TABS = [
   { id: 'roster', label: '학생 명단' },
@@ -65,9 +66,11 @@ function TeacherGuide({ onClose }) {
 }
 
 export default function TeacherApp({ onSignOut }) {
+  const toast = useToast();
   const [tab, setTab] = useState('roster');
   const [cls, setCls] = useState(() => load(KEY, { grade: 3, classNum: 1 }));
   const [showGuide, setShowGuide] = useState(false);
+  const [hands, setHands] = useState([]);
 
   useEffect(() => {
     if (!load(GUIDE_KEY, false)) setShowGuide(true);
@@ -77,6 +80,17 @@ export default function TeacherApp({ onSignOut }) {
     setShowGuide(false);
     save(GUIDE_KEY, true);
   };
+
+  useEffect(() => {
+    const unsub = subscribeHands(
+      cls.grade,
+      cls.classNum,
+      setHands,
+      (h) => toast(`${studentNoDisplay(h.grade, h.classNum, h.number)} ${h.name}이 손을 들었습니다.`, 'alert')
+    );
+    return unsub;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cls.grade, cls.classNum]);
 
   const setClass = (patch) => {
     const next = { ...cls, ...patch };
@@ -137,6 +151,20 @@ export default function TeacherApp({ onSignOut }) {
           나가기
         </button>
       </header>
+
+      {hands.length > 0 && (
+        <div className="hand-banner">
+          <Hand size={18} />
+          {hands.map((h) => (
+            <span key={h.id} className="hand-chip">
+              {studentNoDisplay(h.grade, h.classNum, h.number)} {h.name}
+              <button type="button" onClick={() => lowerHand(h.id).catch(console.error)} title="확인 (손 내리기)" aria-label="확인, 손 내리기">
+                ✕
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
 
       <main className="page">
         {tab === 'roster' && <TeacherRoster key={`r${cls.grade}${cls.classNum}`} {...shared} />}

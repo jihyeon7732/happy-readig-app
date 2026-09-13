@@ -46,5 +46,12 @@ service cloud.firestore {
       allow update: if isTeacher() || (signedIn() && studentWritableOnly());
       allow delete: if isTeacher();
     }
+
+    // 손들기: 학생은 자기 것만 만들고 지울 수 있고, 학급 전체 목록 조회는 선생님만.
+    match /hands/{studentId} {
+      allow get: if signedIn();
+      allow list: if isTeacher();
+      allow create, update, delete: if signedIn();
+    }
   }
 }

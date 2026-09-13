@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { listSessions, getEntry, submitEntry } from '../../lib/db';
+import { listSessions, getEntry, submitEntry, raiseHand, lowerHand, getHandStatus } from '../../lib/db';
 import HighlightBody from '../../components/HighlightBody';
-import { Field, Spinner, StampMini, useToast, Empty } from '../../components/ui';
+import { Field, Spinner, StampMini, useToast, Empty, Hand } from '../../components/ui';
 import { countCharsAll, MIN_CHARS, MAX_CHARS, fmtDate, load, save, drop } from '../../lib/utils';
 
 const blank = { bookTitle: '', pageStart: '', pageEnd: '', keywords: ['', '', ''], body: '' };
@@ -14,7 +14,34 @@ export default function StudentWrite({ student }) {
   const [form, setForm] = useState(blank);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [handUp, setHandUp] = useState(false);
+  const [handBusy, setHandBusy] = useState(false);
   const draftKey = useRef('');
+
+  useEffect(() => {
+    getHandStatus(student.id)
+      .then(setHandUp)
+      .catch((e) => console.error(e));
+  }, [student.id]);
+
+  const toggleHand = async () => {
+    setHandBusy(true);
+    try {
+      if (handUp) {
+        await lowerHand(student.id);
+        setHandUp(false);
+      } else {
+        await raiseHand(student);
+        setHandUp(true);
+        toast('선생님께 손들었어요를 보냈어요.');
+      }
+    } catch (e) {
+      console.error(e);
+      toast('처리하지 못했습니다. 다시 눌러 주세요.', 'bad');
+    } finally {
+      setHandBusy(false);
+    }
+  };
 
   useEffect(() => {
     (async () => {
@@ -128,6 +155,18 @@ export default function StudentWrite({ student }) {
 
   return (
     <div className="stack">
+      <button
+        type="button"
+        className={`hand-fab ${handUp ? 'up' : ''}`}
+        onClick={toggleHand}
+        disabled={handBusy}
+        aria-pressed={handUp}
+        title={handUp ? '손 내리기' : '질문 있어요 (선생님께 손들기)'}
+      >
+        <Hand size={20} />
+        <span>{handUp ? '손 내리기' : '질문 있어요'}</span>
+      </button>
+
       <nav className="tabs" aria-label="회차">
         {sessions.map((s) => (
           <button key={s.id} className="tab" aria-current={s.id === sessionId} onClick={() => setSessionId(s.id)}>
