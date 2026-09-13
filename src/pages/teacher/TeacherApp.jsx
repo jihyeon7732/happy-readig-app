@@ -65,20 +65,21 @@ function TeacherGuide({ onClose }) {
   );
 }
 
-export default function TeacherApp({ onSignOut }) {
+export default function TeacherApp({ onSignOut, isDemo = false, initialClass }) {
   const toast = useToast();
   const [tab, setTab] = useState('roster');
-  const [cls, setCls] = useState(() => load(KEY, { grade: 3, classNum: 1 }));
+  const [cls, setCls] = useState(() => initialClass || load(KEY, { grade: 3, classNum: 1 }));
   const [showGuide, setShowGuide] = useState(false);
   const [hands, setHands] = useState([]);
 
   useEffect(() => {
-    if (!load(GUIDE_KEY, false)) setShowGuide(true);
+    if (!isDemo && !load(GUIDE_KEY, false)) setShowGuide(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const closeGuide = () => {
     setShowGuide(false);
-    save(GUIDE_KEY, true);
+    if (!isDemo) save(GUIDE_KEY, true);
   };
 
   useEffect(() => {
@@ -95,7 +96,7 @@ export default function TeacherApp({ onSignOut }) {
   const setClass = (patch) => {
     const next = { ...cls, ...patch };
     setCls(next);
-    save(KEY, next);
+    if (!isDemo) save(KEY, next);
   };
 
   const shared = { grade: Number(cls.grade), classNum: Number(cls.classNum), goTo: setTab };
@@ -112,6 +113,7 @@ export default function TeacherApp({ onSignOut }) {
             value={cls.grade}
             onChange={(e) => setClass({ grade: Number(e.target.value) })}
             aria-label="학년"
+            disabled={isDemo}
           >
             {[1, 2, 3].map((g) => (
               <option key={g} value={g}>
@@ -125,6 +127,7 @@ export default function TeacherApp({ onSignOut }) {
             value={cls.classNum}
             onChange={(e) => setClass({ classNum: Number(e.target.value) })}
             aria-label="반"
+            disabled={isDemo}
           >
             {Array.from({ length: 15 }, (_, i) => i + 1).map((c) => (
               <option key={c} value={c}>
@@ -143,12 +146,13 @@ export default function TeacherApp({ onSignOut }) {
         </nav>
 
         <span className="spacer" />
+        {isDemo && <span className="who">체험판</span>}
         <button className="btn ghost sm" onClick={() => setShowGuide(true)}>
           사용법
         </button>
-        <span className="who">김지현 선생님</span>
+        <span className="who">{isDemo ? '체험용 선생님' : '김지현 선생님'}</span>
         <button className="btn ghost sm" onClick={onSignOut}>
-          나가기
+          {isDemo ? '체험판 나가기' : '나가기'}
         </button>
       </header>
 

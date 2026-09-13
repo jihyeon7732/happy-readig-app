@@ -5,6 +5,7 @@ import StudentApp from './pages/student/StudentApp';
 import { watchAuth, signInStudentAnon, signOutAll } from './lib/firebase';
 import { load, save, drop } from './lib/utils';
 import { Spinner, Footer } from './components/ui';
+import { setDemoMode, resetDemoData, DEMO_STUDENT, DEMO_GRADE, DEMO_CLASS } from './lib/demoData';
 
 const KEY = 'myeongil.student.v1';
 
@@ -12,6 +13,7 @@ export default function App() {
   const [phase, setPhase] = useState('boot'); // boot | anon | teacher | error
   const [student, setStudent] = useState(() => load(KEY, null));
   const [fatal, setFatal] = useState('');
+  const [demoRole, setDemoRole] = useState(null); // null | 'teacher' | 'student'
 
   useEffect(() => {
     const stop = watchAuth((user) => {
@@ -42,6 +44,24 @@ export default function App() {
     await signOutAll(); // watchAuth가 곧바로 익명 세션을 다시 연다
   };
 
+  const enterDemo = (role) => {
+    resetDemoData();
+    setDemoMode(true);
+    setDemoRole(role);
+  };
+
+  const exitDemo = () => {
+    setDemoMode(false);
+    setDemoRole(null);
+  };
+
+  if (demoRole === 'teacher') {
+    return <TeacherApp onSignOut={exitDemo} isDemo initialClass={{ grade: DEMO_GRADE, classNum: DEMO_CLASS }} />;
+  }
+  if (demoRole === 'student') {
+    return <StudentApp student={DEMO_STUDENT} onSignOut={exitDemo} isDemo />;
+  }
+
   if (phase === 'boot') {
     return (
       <div className="login-wrap">
@@ -67,5 +87,11 @@ export default function App() {
 
   if (phase === 'teacher') return <TeacherApp onSignOut={signOut} />;
   if (student) return <StudentApp student={student} onSignOut={signOut} />;
-  return <Login onSignInStudent={signInStudent} />;
+  return (
+    <Login
+      onSignInStudent={signInStudent}
+      onDemoTeacher={() => enterDemo('teacher')}
+      onDemoStudent={() => enterDemo('student')}
+    />
+  );
 }

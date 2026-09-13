@@ -10,7 +10,7 @@ const TABS = [
   { id: 'me', label: '나의 포트폴리오' },
 ];
 
-export default function StudentApp({ student, onSignOut }) {
+export default function StudentApp({ student, onSignOut, isDemo = false }) {
   const [tab, setTab] = useState('write');
 
   return (
@@ -25,11 +25,12 @@ export default function StudentApp({ student, onSignOut }) {
           ))}
         </nav>
         <span className="spacer" />
+        {isDemo && <span className="who">체험판</span>}
         <span className="who">
           {student.grade}-{student.classNum} {student.number}번 {student.name}
         </span>
         <button className="btn ghost sm" onClick={onSignOut}>
-          나가기
+          {isDemo ? '체험판 나가기' : '나가기'}
         </button>
       </header>
 

@@ -3,7 +3,7 @@ import { authStudent } from '../lib/db';
 import { signInTeacher, signInTeacherGoogle } from '../lib/firebase';
 import { Field, Spinner, Footer } from '../components/ui';
 
-export default function Login({ onSignInStudent }) {
+export default function Login({ onSignInStudent, onDemoTeacher, onDemoStudent }) {
   const [mode, setMode] = useState('student');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
@@ -159,6 +159,23 @@ export default function Login({ onSignInStudent }) {
               <p className="counter">Firebase 콘솔에 등록한 교사 계정으로 로그인합니다.</p>
             </form>
           )}
+        </div>
+
+        <div className="card stack" style={{ gap: 8 }}>
+          <p className="counter" style={{ margin: 0 }}>
+            계정 없이 기능만 미리 둘러보고 싶다면?
+          </p>
+          <div className="row" style={{ gap: 8 }}>
+            <button type="button" className="btn block" onClick={onDemoTeacher}>
+              교사용 체험판 보기
+            </button>
+            <button type="button" className="btn block" onClick={onDemoStudent}>
+              학생용 체험판 보기
+            </button>
+          </div>
+          <p className="counter" style={{ margin: 0 }}>
+            체험판은 가짜 데이터로만 동작하며, 새로고침하면 초기화됩니다.
+          </p>
         </div>
         </div>
         <Footer />

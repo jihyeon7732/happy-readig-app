@@ -14,6 +14,8 @@ import {
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { classKeyOf, studentIdOf, makePassword } from './utils';
+import { isDemoMode } from './demoData';
+import * as demoDb from './demoData';
 
 const students = collection(db, 'students');
 const sessions = collection(db, 'sessions');
@@ -23,12 +25,14 @@ const hands = collection(db, 'hands');
 /* ---------------- 학생 명단 ---------------- */
 
 export async function listStudents(grade, classNum) {
+  if (isDemoMode()) return demoDb.listStudents(grade, classNum);
   const q = query(students, where('classKey', '==', classKeyOf(grade, classNum)));
   const snap = await getDocs(q);
   return snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => a.number - b.number);
 }
 
 export async function listStudentsByGrade(grade) {
+  if (isDemoMode()) return demoDb.listStudentsByGrade(grade);
   const q = query(students, where('grade', '==', Number(grade)));
   const snap = await getDocs(q);
   return snap.docs
@@ -38,6 +42,7 @@ export async function listStudentsByGrade(grade) {
 
 /** 이름 목록을 한 번에 등록. 이미 있는 번호는 이름만 갱신하고 비밀번호는 유지합니다. */
 export async function upsertStudents(grade, classNum, rows) {
+  if (isDemoMode()) return demoDb.upsertStudents(grade, classNum, rows);
   const existing = await listStudents(grade, classNum);
   const byId = Object.fromEntries(existing.map((s) => [s.id, s]));
   const batch = writeBatch(db);
@@ -64,6 +69,7 @@ export async function upsertStudents(grade, classNum, rows) {
 
 /** 비밀번호가 비어 있는 학생에게만(또는 전체 재발급) 4자리 코드를 부여 */
 export async function issuePasswords(grade, classNum, { regenerateAll = false } = {}) {
+  if (isDemoMode()) return demoDb.issuePasswords(grade, classNum, { regenerateAll });
   const list = await listStudents(grade, classNum);
   const used = new Set(list.map((s) => s.password).filter(Boolean));
   const batch = writeBatch(db);
@@ -80,10 +86,12 @@ export async function issuePasswords(grade, classNum, { regenerateAll = false } 
 }
 
 export async function updateStudent(id, patch) {
+  if (isDemoMode()) return demoDb.updateStudent(id, patch);
   await updateDoc(doc(students, id), patch);
 }
 
 export async function removeStudent(id) {
+  if (isDemoMode()) return demoDb.removeStudent(id);
   await deleteDoc(doc(students, id));
 }
 
@@ -104,12 +112,14 @@ export async function authStudent({ grade, classNum, number, name, password }) {
 /* ---------------- 회차 세션 ---------------- */
 
 export async function listSessions(grade, classNum) {
+  if (isDemoMode()) return demoDb.listSessions(grade, classNum);
   const q = query(sessions, where('classKey', '==', classKeyOf(grade, classNum)));
   const snap = await getDocs(q);
   return snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => a.round - b.round);
 }
 
 export async function createSession({ grade, classNum, date, period, round }) {
+  if (isDemoMode()) return demoDb.createSession({ grade, classNum, date, period, round });
   const id = `${classKeyOf(grade, classNum)}-r${round}`;
   const payload = {
     grade: Number(grade),
@@ -126,10 +136,12 @@ export async function createSession({ grade, classNum, date, period, round }) {
 }
 
 export async function setSessionOpen(id, open) {
+  if (isDemoMode()) return demoDb.setSessionOpen(id, open);
   await updateDoc(doc(sessions, id), { open });
 }
 
 export async function removeSession(id) {
+  if (isDemoMode()) return demoDb.removeSession(id);
   const snap = await getDocs(query(entries, where('sessionId', '==', id)));
   const batch = writeBatch(db);
   snap.docs.forEach((d) => batch.delete(d.ref));
@@ -142,26 +154,31 @@ export async function removeSession(id) {
 const entryId = (sessionId, studentId) => `${sessionId}__${studentId}`;
 
 export async function getEntry(sessionId, studentId) {
+  if (isDemoMode()) return demoDb.getEntry(sessionId, studentId);
   const snap = await getDoc(doc(entries, entryId(sessionId, studentId)));
   return snap.exists() ? { id: snap.id, ...snap.data() } : null;
 }
 
 export async function listEntriesBySession(sessionId) {
+  if (isDemoMode()) return demoDb.listEntriesBySession(sessionId);
   const snap = await getDocs(query(entries, where('sessionId', '==', sessionId)));
   return snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => a.number - b.number);
 }
 
 export async function listEntriesByStudent(studentId) {
+  if (isDemoMode()) return demoDb.listEntriesByStudent(studentId);
   const snap = await getDocs(query(entries, where('studentId', '==', studentId)));
   return snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => a.round - b.round);
 }
 
 export async function listEntriesByClass(grade, classNum) {
+  if (isDemoMode()) return demoDb.listEntriesByClass(grade, classNum);
   const snap = await getDocs(query(entries, where('classKey', '==', classKeyOf(grade, classNum))));
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 
 export async function submitEntry({ session, student, bookTitle, pageStart, pageEnd, keywords, body, suspiciousInput }) {
+  if (isDemoMode()) return demoDb.submitEntry({ session, student, bookTitle, pageStart, pageEnd, keywords, body, suspiciousInput });
   const id = entryId(session.id, student.id);
   const ref = doc(entries, id);
   const prev = await getDoc(ref);
@@ -201,6 +218,7 @@ export async function submitEntry({ session, student, bookTitle, pageStart, page
 }
 
 export async function patchEntry(id, patch) {
+  if (isDemoMode()) return demoDb.patchEntry(id, patch);
   await updateDoc(doc(entries, id), patch);
 }
 
@@ -218,6 +236,7 @@ export async function toggleHonor(entry, allEntries) {
 
 /** 학생이 손을 듦 (질문 있어요) */
 export async function raiseHand(student) {
+  if (isDemoMode()) return demoDb.raiseHand(student);
   await setDoc(doc(hands, student.id), {
     studentId: student.id,
     number: student.number,
@@ -231,17 +250,20 @@ export async function raiseHand(student) {
 
 /** 손을 내림 (학생이 스스로 내리거나, 선생님이 확인 처리) */
 export async function lowerHand(studentId) {
+  if (isDemoMode()) return demoDb.lowerHand(studentId);
   await deleteDoc(doc(hands, studentId));
 }
 
 /** 지금 내 손이 들려 있는 상태인지 확인 */
 export async function getHandStatus(studentId) {
+  if (isDemoMode()) return demoDb.getHandStatus(studentId);
   const snap = await getDoc(doc(hands, studentId));
   return snap.exists();
 }
 
 /** 학급의 손든 학생 목록을 실시간으로 구독. 새로 손을 든 학생을 onRaise로 알려 줍니다. */
 export function subscribeHands(grade, classNum, onChange, onRaise) {
+  if (isDemoMode()) return demoDb.subscribeHands(grade, classNum, onChange, onRaise);
   const q = query(hands, where('classKey', '==', classKeyOf(grade, classNum)));
   return onSnapshot(q, (snap) => {
     snap.docChanges().forEach((c) => {
