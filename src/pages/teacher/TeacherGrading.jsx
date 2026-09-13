@@ -198,6 +198,11 @@ export default function TeacherGrading({ grade, classNum, goTo }) {
                   <Trophy size={11} />
                 </span>
               )}
+              {r.entry?.suspiciousInput && (
+                <span title="붙여넣기 의심" style={{ color: 'var(--seal)' }}>
+                  ⚠
+                </span>
+              )}
               {r.entry ? <StampMini stamp={r.entry.stamp} /> : <span className="counter">미제출</span>}
             </button>
           ))}
@@ -241,9 +246,16 @@ function EntryDetail({ entry, session, onStamp, onHonor, onHighlights, onFeedbac
       <div className="card">
         <div className="row" style={{ justifyContent: 'space-between', marginBottom: 12 }}>
           <div>
-            <h2>
-              {entry.number}번 {entry.name}
-            </h2>
+            <div className="row" style={{ gap: 8 }}>
+              <h2>
+                {entry.number}번 {entry.name}
+              </h2>
+              {entry.suspiciousInput && (
+                <span className="badge" style={{ background: '#f7e9e6', borderColor: '#e8cfc9', color: 'var(--seal)' }}>
+                  ⚠ 붙여넣기 의심
+                </span>
+              )}
+            </div>
             <p className="counter">
               {session?.round}회차 · {fmtDate(entry.date)} · {entry.bookTitle || '제목 미기재'} · {entry.pageStart}~
               {entry.pageEnd}쪽 · {chars}자

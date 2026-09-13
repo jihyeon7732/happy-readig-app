@@ -4,7 +4,8 @@ import HighlightBody from '../../components/HighlightBody';
 import { Field, Spinner, StampMini, useToast, Empty, Hand } from '../../components/ui';
 import { countCharsAll, MIN_CHARS, MAX_CHARS, fmtDate, load, save, drop } from '../../lib/utils';
 
-const blank = { bookTitle: '', pageStart: '', pageEnd: '', keywords: ['', '', ''], body: '' };
+const blank = { bookTitle: '', pageStart: '', pageEnd: '', keywords: ['', '', ''], body: '', suspiciousInput: false };
+const PASTE_JUMP = 20; // 한 번의 입력으로 이보다 많이 늘어나면 붙여넣기로 의심
 
 export default function StudentWrite({ student }) {
   const toast = useToast();
@@ -72,6 +73,7 @@ export default function StudentWrite({ student }) {
             pageEnd: e.pageEnd || '',
             keywords: [e.keywords?.[0] || '', e.keywords?.[1] || '', e.keywords?.[2] || ''],
             body: e.body || '',
+            suspiciousInput: e.suspiciousInput || false,
           });
         } else {
           setForm(load(draftKey.current, blank));
@@ -113,9 +115,21 @@ export default function StudentWrite({ student }) {
       toast(`${MAX_CHARS}자까지만 쓸 수 있어요.`, 'bad');
       return;
     }
-    const next = { ...form, body: value };
+    const jumped = value.length - form.body.length > PASTE_JUMP;
+    if (jumped && !form.suspiciousInput) {
+      toast('한 번에 너무 많은 글자가 입력됐어요. 직접 타이핑해 주세요.', 'bad');
+    }
+    const next = { ...form, body: value, suspiciousInput: form.suspiciousInput || jumped };
     setForm(next);
     save(draftKey.current, next);
+  };
+
+  const blockPaste = (e) => {
+    e.preventDefault();
+    const next = { ...form, suspiciousInput: true };
+    setForm(next);
+    save(draftKey.current, next);
+    toast('붙여넣기는 사용할 수 없어요. 직접 입력해 주세요.', 'bad');
   };
 
   const submit = async () => {
@@ -222,9 +236,13 @@ export default function StudentWrite({ student }) {
             style={{ minHeight: 300 }}
             value={form.body}
             onChange={setBody}
+            onPaste={blockPaste}
+            onDrop={(e) => e.preventDefault()}
+            onDragOver={(e) => e.preventDefault()}
             disabled={!session?.open}
             placeholder="가장 인상 깊었던 구절과 그 이유, 그리고 그 장면이 내 경험이나 우리 사회의 어떤 모습과 닮았는지 써 보세요."
           />
+          <p className="counter">직접 타이핑해서 써 주세요. 붙여넣기는 막혀 있어요.</p>
         </Field>
 
         <div className="stack" style={{ gap: 6 }}>

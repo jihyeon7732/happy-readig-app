@@ -161,7 +161,7 @@ export async function listEntriesByClass(grade, classNum) {
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 
-export async function submitEntry({ session, student, bookTitle, pageStart, pageEnd, keywords, body }) {
+export async function submitEntry({ session, student, bookTitle, pageStart, pageEnd, keywords, body, suspiciousInput }) {
   const id = entryId(session.id, student.id);
   const ref = doc(entries, id);
   const prev = await getDoc(ref);
@@ -174,6 +174,7 @@ export async function submitEntry({ session, student, bookTitle, pageStart, page
     pageEnd: Number(pageEnd) || 0,
     keywords: keywords.map((k) => k.trim()).filter(Boolean),
     body,
+    suspiciousInput: Boolean(suspiciousInput),
     updatedAt: serverTimestamp(),
   };
   if (!prev.exists()) {

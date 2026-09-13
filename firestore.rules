@@ -23,7 +23,7 @@ service cloud.firestore {
     // 학생이 자기 일지를 낼 때 건드릴 수 있는 항목만 허용
     function studentWritableOnly() {
       return request.resource.data.diff(resource.data).affectedKeys()
-        .hasOnly(['bookTitle','pageStart','pageEnd','keywords','body','updatedAt']);
+        .hasOnly(['bookTitle','pageStart','pageEnd','keywords','body','suspiciousInput','updatedAt']);
     }
 
     // 명단: 로그인 확인은 개별 문서 조회(get)로만. 명단 전체 조회(list)는 선생님만.
