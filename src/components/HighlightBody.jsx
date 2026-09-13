@@ -34,6 +34,13 @@ export default function HighlightBody({ text = '', highlights = [], editable = f
     setPop(null);
   };
 
+  /* 잘못 남긴 칭찬 마크 하나만 클릭해서 지우기 */
+  const removeMark = (part) => {
+    if (!editable) return;
+    const next = highlights.filter((h) => h.end <= part.start || h.start >= part.end);
+    onChange?.(next);
+  };
+
   return (
     <>
       <div
@@ -44,7 +51,12 @@ export default function HighlightBody({ text = '', highlights = [], editable = f
       >
         {parts.map((p, i) =>
           p.mark ? (
-            <mark className="praise" key={i}>
+            <mark
+              className={`praise ${editable ? 'removable' : ''}`}
+              key={i}
+              title={editable ? '클릭하면 이 칭찬 마크를 지웁니다' : undefined}
+              onClick={editable ? () => removeMark(p) : undefined}
+            >
               {p.text}
             </mark>
           ) : (

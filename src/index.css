@@ -274,6 +274,9 @@ textarea {
 
 /* ---------- 버튼 ---------- */
 .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   border: 1px solid var(--paper-line);
   background: #fff;
   color: var(--ink);
@@ -426,6 +429,12 @@ mark.praise {
   padding: 0 1px;
   border-radius: 2px;
 }
+mark.praise.removable {
+  cursor: pointer;
+}
+mark.praise.removable:hover {
+  background: linear-gradient(transparent 38%, #f3b3a8 38%, #f3b3a8 92%, transparent 92%);
+}
 
 .body-text {
   white-space: pre-wrap;
@@ -479,9 +488,13 @@ mark.praise {
   color: var(--seal);
 }
 .badge.gold {
-  background: #fbf2dd;
-  border-color: #ecdcb4;
-  color: var(--gold);
+  background: linear-gradient(120deg, #fff3d6, #f8e2ab);
+  border-color: #e2c27c;
+  color: #8a651e;
+  font-weight: 600;
+}
+.badge.gold .trophy-icon {
+  flex-shrink: 0;
 }
 
 .keyword {
@@ -567,9 +580,50 @@ mark.praise {
   box-shadow: 0 6px 16px -14px rgba(51, 40, 31, 0.8);
 }
 .postit.honor {
-  background: #fffaf0;
-  border: 1px solid #ecdcb4;
-  box-shadow: 0 8px 22px -16px rgba(184, 137, 43, 0.9);
+  position: relative;
+  background: linear-gradient(165deg, #fffaf0 0%, #fdf3d9 55%, #fbeec2 100%);
+  border: 1px solid #e8c56a;
+  box-shadow: 0 10px 26px -14px rgba(184, 137, 43, 0.75), 0 0 0 1px rgba(232, 197, 106, 0.35) inset;
+  overflow: hidden;
+}
+.postit.honor::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120px 60px at 90% -10%, rgba(255, 229, 138, 0.55), transparent 70%);
+  pointer-events: none;
+}
+.postit.honor .ribbon {
+  position: absolute;
+  top: 10px;
+  right: -30px;
+  transform: rotate(38deg);
+  background: linear-gradient(180deg, #e8b93f, #b8892b);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 34px;
+  box-shadow: 0 3px 8px -2px rgba(0, 0, 0, 0.35);
+}
+
+/* ---------- 명예의 전당 헤더 ---------- */
+.hof-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  border-radius: var(--r-lg);
+  background: linear-gradient(120deg, #fff7e0, #fdecc0 60%, #fbe4a8);
+  border: 1px solid #ecd48f;
+  box-shadow: 0 10px 24px -16px rgba(184, 137, 43, 0.8);
+}
+.hof-head .trophy-icon {
+  filter: drop-shadow(0 3px 4px rgba(184, 137, 43, 0.45));
+  flex-shrink: 0;
+}
+.hof-head h2 {
+  margin: 0;
+  color: #8a651e;
 }
 .postit .meta {
   display: flex;

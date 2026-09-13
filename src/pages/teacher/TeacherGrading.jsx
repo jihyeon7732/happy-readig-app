@@ -8,7 +8,7 @@ import {
 } from '../../lib/db';
 import { generateBatchFeedback, analyzeEntry } from '../../lib/ai';
 import HighlightBody from '../../components/HighlightBody';
-import { StampButton, StampMini, Spinner, useToast, Empty } from '../../components/ui';
+import { StampButton, StampMini, Spinner, useToast, Empty, Trophy } from '../../components/ui';
 import { countChars, fmtDate } from '../../lib/utils';
 
 export default function TeacherGrading({ grade, classNum, goTo }) {
@@ -165,7 +165,9 @@ export default function TeacherGrading({ grade, classNum, goTo }) {
             제출 {submitted}/{roster.length}
           </span>
           <span className="badge">채점 {graded}</span>
-          <span className="badge gold">명예의 전당 {honorCount}/3</span>
+          <span className="badge gold">
+            <Trophy size={13} /> 명예의 전당 {honorCount}/3
+          </span>
         </div>
 
         <div className="row">
@@ -191,7 +193,11 @@ export default function TeacherGrading({ grade, classNum, goTo }) {
             >
               <span className="no">{r.student.number}</span>
               <span className="nm">{r.student.name}</span>
-              {r.entry?.honor && <span className="badge gold" style={{ padding: '1px 6px' }}>전당</span>}
+              {r.entry?.honor && (
+                <span className="badge gold" style={{ padding: '1px 6px' }}>
+                  <Trophy size={11} />
+                </span>
+              )}
               {r.entry ? <StampMini stamp={r.entry.stamp} /> : <span className="counter">미제출</span>}
             </button>
           ))}
@@ -268,7 +274,7 @@ function EntryDetail({ entry, session, onStamp, onHonor, onHighlights, onFeedbac
           onChange={onHighlights}
         />
         <p className="counter" style={{ marginTop: 12 }}>
-          칭찬할 문장을 마우스로 드래그하면 형광펜을 칠할 수 있습니다.
+          칭찬할 문장을 마우스로 드래그하면 형광펜을 칠할 수 있습니다. 잘못 칠했다면 마크를 클릭해서 지울 수 있습니다.
         </p>
       </div>
 
@@ -291,7 +297,7 @@ function EntryDetail({ entry, session, onStamp, onHonor, onHighlights, onFeedbac
           </div>
 
           <button className={`btn sm ${entry.honor ? 'wood' : ''}`} onClick={onHonor}>
-            {entry.honor ? '명예의 전당 지정됨' : '명예의 전당에 올리기'}
+            <Trophy size={14} /> {entry.honor ? '명예의 전당 지정됨 (클릭하면 해제)' : '명예의 전당에 올리기'}
           </button>
         </div>
       </div>

@@ -3,12 +3,14 @@ import TeacherRoster from './TeacherRoster';
 import TeacherSessions from './TeacherSessions';
 import TeacherGrading from './TeacherGrading';
 import TeacherStats from './TeacherStats';
+import TeacherWall from './TeacherWall';
 import { load, save } from '../../lib/utils';
 
 const TABS = [
   { id: 'roster', label: '학생 명단' },
   { id: 'sessions', label: '회차 관리' },
   { id: 'grading', label: '채점' },
+  { id: 'wall', label: '담벼락' },
   { id: 'stats', label: '학급 통계' },
 ];
 
@@ -79,6 +81,7 @@ export default function TeacherApp({ onSignOut }) {
         {tab === 'roster' && <TeacherRoster key={`r${cls.grade}${cls.classNum}`} {...shared} />}
         {tab === 'sessions' && <TeacherSessions key={`s${cls.grade}${cls.classNum}`} {...shared} />}
         {tab === 'grading' && <TeacherGrading key={`g${cls.grade}${cls.classNum}`} {...shared} />}
+        {tab === 'wall' && <TeacherWall key={`w${cls.grade}${cls.classNum}`} {...shared} />}
         {tab === 'stats' && <TeacherStats key={`t${cls.grade}${cls.classNum}`} {...shared} />}
       </main>
     </div>

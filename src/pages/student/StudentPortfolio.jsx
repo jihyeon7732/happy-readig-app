@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { listEntriesByStudent } from '../../lib/db';
 import HighlightBody from '../../components/HighlightBody';
-import { StampMini, Spinner, useToast, Empty } from '../../components/ui';
+import { StampMini, Spinner, useToast, Empty, Trophy } from '../../components/ui';
 import { countChars, fmtDate } from '../../lib/utils';
 
 export default function StudentPortfolio({ student }) {
@@ -58,7 +58,7 @@ export default function StudentPortfolio({ student }) {
         <Stat label="낸 일지" value={`${entries.length}편`} />
         <Stat label="상 도장" value={`${stat.high}개`} accent />
         <Stat label="읽은 책" value={`${stat.books}권`} />
-        <Stat label="명예의 전당" value={`${stat.honor}회`} />
+        <Stat label="명예의 전당" value={`${stat.honor}회`} icon={stat.honor > 0 ? <Trophy size={18} /> : null} />
       </div>
 
       <p className="counter">지금까지 공백 없이 {stat.chars.toLocaleString()}자를 썼습니다.</p>
@@ -76,7 +76,11 @@ export default function StudentPortfolio({ student }) {
                 </p>
               </div>
               <div className="row" style={{ gap: 8 }}>
-                {e.honor && <span className="badge gold">명예의 전당</span>}
+                {e.honor && (
+                  <span className="badge gold">
+                    <Trophy size={13} /> 명예의 전당
+                  </span>
+                )}
                 <StampMini stamp={e.stamp} />
               </div>
             </div>
@@ -110,18 +114,21 @@ export default function StudentPortfolio({ student }) {
   );
 }
 
-function Stat({ label, value, accent }) {
+function Stat({ label, value, accent, icon }) {
   return (
     <div className="card flat" style={{ padding: '14px 16px' }}>
       <p className="counter">{label}</p>
       <p
+        className="row"
         style={{
           fontFamily: 'var(--serif)',
           fontSize: 24,
           color: accent ? 'var(--seal)' : 'var(--wood)',
           lineHeight: 1.4,
+          gap: 6,
         }}
       >
+        {icon}
         {value}
       </p>
     </div>

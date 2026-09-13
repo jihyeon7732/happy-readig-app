@@ -91,6 +91,51 @@ export function StampMini({ stamp }) {
   );
 }
 
+/* ---------------- 트로피 ---------------- */
+export function Trophy({ size = 20, className = '' }) {
+  return (
+    <svg
+      className={`trophy-icon ${className}`}
+      width={size}
+      height={size}
+      viewBox="0 0 48 48"
+      fill="none"
+      aria-hidden="true"
+    >
+      <defs>
+        <linearGradient id="trophyGold" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#ffe58a" />
+          <stop offset="55%" stopColor="#e8b93f" />
+          <stop offset="100%" stopColor="#b8892b" />
+        </linearGradient>
+      </defs>
+      <path
+        d="M14 6h20v11c0 6.1-4.5 10.6-10 11.4C18.5 27.6 14 23.1 14 17V6z"
+        fill="url(#trophyGold)"
+        stroke="#8a651e"
+        strokeWidth="1.2"
+      />
+      <path
+        d="M14 9H7.5C7 14.5 9.7 18.6 14 19.8"
+        fill="none"
+        stroke="#b8892b"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+      />
+      <path
+        d="M34 9h6.5c.5 5.5-2.2 9.6-6.5 10.8"
+        fill="none"
+        stroke="#b8892b"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+      />
+      <rect x="21.5" y="28" width="5" height="7" fill="#b8892b" />
+      <path d="M15 40c0-3 4-4.6 9-4.6s9 1.6 9 4.6v1.4H15V40z" fill="#8a651e" />
+      <rect x="14" y="35.6" width="20" height="3" rx="1.5" fill="#e8b93f" />
+    </svg>
+  );
+}
+
 export const Spinner = () => <span className="spinner" aria-hidden="true" />;
 
 export function Empty({ title, children }) {

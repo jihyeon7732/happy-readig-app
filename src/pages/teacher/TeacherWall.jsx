@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { listSessions, listEntriesBySession } from '../../lib/db';
 import HighlightBody from '../../components/HighlightBody';
-import { Spinner, useToast, Empty, Trophy } from '../../components/ui';
+import { Spinner, useToast, Empty, Trophy, StampMini } from '../../components/ui';
 import { fmtDate } from '../../lib/utils';
 
-export default function StudentWall({ student }) {
+export default function TeacherWall({ grade, classNum }) {
   const toast = useToast();
   const [sessions, setSessions] = useState([]);
   const [sessionId, setSessionId] = useState('');
@@ -12,44 +12,46 @@ export default function StudentWall({ student }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    listSessions(student.grade, student.classNum)
+    setLoading(true);
+    listSessions(grade, classNum)
       .then((s) => {
         setSessions(s);
         setSessionId(s[s.length - 1]?.id || '');
+        if (!s.length) setLoading(false);
       })
       .catch((e) => {
         console.error(e);
         toast('담벼락을 불러오지 못했습니다.', 'bad');
-      })
-      .finally(() => setLoading(false));
+        setLoading(false);
+      });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [student.id]);
+  }, [grade, classNum]);
 
   useEffect(() => {
     if (!sessionId) return;
     setLoading(true);
     listEntriesBySession(sessionId)
       .then(setEntries)
-      .catch(console.error)
+      .catch((e) => {
+        console.error(e);
+        toast('담벼락을 불러오지 못했습니다.', 'bad');
+      })
       .finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId]);
 
-  /* 번호 순서를 그대로 쓰면 누구인지 추측할 수 있으므로 회차 id로 섞은 익명 번호를 붙입니다. */
   const cards = useMemo(() => {
-    const seed = [...sessionId].reduce((a, c) => a + c.charCodeAt(0), 0);
-    const shuffled = [...entries]
-      .map((e, i) => ({ e, k: ((i + 1) * 9301 + seed * 49297) % 233280 }))
-      .sort((a, b) => a.k - b.k)
-      .map(({ e }, i) => ({ ...e, alias: `익명 ${i + 1}` }));
-    const honor = shuffled.filter((e) => e.honor);
-    const rest = shuffled.filter((e) => !e.honor);
-    return { honor, rest };
-  }, [entries, sessionId]);
+    const sorted = [...entries].sort((a, b) => a.number - b.number);
+    return {
+      honor: sorted.filter((e) => e.honor),
+      rest: sorted.filter((e) => !e.honor),
+    };
+  }, [entries]);
 
-  if (!sessions.length && !loading) {
+  if (!loading && !sessions.length) {
     return (
       <div className="card">
-        <Empty title="아직 담벼락에 붙은 글이 없습니다">첫 회차가 열리면 친구들의 일지를 볼 수 있어요.</Empty>
+        <Empty title="아직 담벼락에 붙은 글이 없습니다">회차를 열면 학생들의 일지를 볼 수 있어요.</Empty>
       </div>
     );
   }
@@ -58,6 +60,13 @@ export default function StudentWall({ student }) {
 
   return (
     <div className="stack">
+      <div className="section-head">
+        <h1>
+          {grade}학년 {classNum}반 담벼락
+        </h1>
+        <span className="hint">학생들이 보는 화면과 같은 글이지만, 여기서는 이름이 그대로 보입니다.</span>
+      </div>
+
       <div className="row" style={{ justifyContent: 'space-between' }}>
         <nav className="tabs" aria-label="회차">
           {sessions.map((s) => (
@@ -66,7 +75,11 @@ export default function StudentWall({ student }) {
             </button>
           ))}
         </nav>
-        {session && <span className="counter">{fmtDate(session.date)} · {entries.length}편</span>}
+        {session && (
+          <span className="counter">
+            {fmtDate(session.date)} · {entries.length}편
+          </span>
+        )}
       </div>
 
       {loading ? (
@@ -75,7 +88,7 @@ export default function StudentWall({ student }) {
         </div>
       ) : entries.length === 0 ? (
         <div className="card">
-          <Empty title="이 회차에는 아직 올라온 글이 없습니다">일지를 내면 담벼락에 함께 붙습니다.</Empty>
+          <Empty title="이 회차에는 아직 올라온 글이 없습니다">학생이 일지를 내면 여기에 함께 붙습니다.</Empty>
         </div>
       ) : (
         <>
@@ -85,12 +98,12 @@ export default function StudentWall({ student }) {
                 <Trophy size={30} />
                 <div>
                   <h2>이번 회차 명예의 전당</h2>
-                  <span className="hint">선생님이 고른 {cards.honor.length}편</span>
+                  <span className="hint">{cards.honor.length}편</span>
                 </div>
               </div>
               <div className="wall">
                 {cards.honor.map((e) => (
-                  <Card key={e.id} entry={e} me={e.studentId === student.id} honor />
+                  <Card key={e.id} entry={e} honor />
                 ))}
               </div>
             </section>
@@ -99,11 +112,10 @@ export default function StudentWall({ student }) {
           <section className="stack">
             <div className="section-head">
               <h2>우리 반 담벼락</h2>
-              <span className="hint">이름은 서로 보이지 않습니다</span>
             </div>
             <div className="wall">
               {cards.rest.map((e) => (
-                <Card key={e.id} entry={e} me={e.studentId === student.id} />
+                <Card key={e.id} entry={e} />
               ))}
             </div>
           </section>
@@ -113,7 +125,7 @@ export default function StudentWall({ student }) {
   );
 }
 
-function Card({ entry, me, honor }) {
+function Card({ entry, honor }) {
   return (
     <article className={`postit ${honor ? 'honor' : ''}`}>
       {honor && <span className="ribbon">HONOR</span>}
@@ -123,11 +135,14 @@ function Card({ entry, me, honor }) {
             <Trophy size={13} /> 명예의 전당
           </span>
         )}
-        <span>{me ? '내 글' : entry.alias}</span>
+        <span>
+          {entry.number}번 {entry.name}
+        </span>
         <span>·</span>
         <span>
           {entry.bookTitle} {entry.pageStart}~{entry.pageEnd}쪽
         </span>
+        <StampMini stamp={entry.stamp} />
       </div>
 
       <div className="row" style={{ gap: 6, marginBottom: 8 }}>
@@ -142,10 +157,16 @@ function Card({ entry, me, honor }) {
         <HighlightBody text={entry.body} highlights={entry.highlights || []} />
       </div>
 
-      {honor && entry.teacherFeedback && (
+      {entry.teacherFeedback && (
         <div className="fb teacher" style={{ marginTop: 12 }}>
           <span className="lb">선생님 피드백</span>
           {entry.teacherFeedback}
+        </div>
+      )}
+      {entry.aiFeedback && (
+        <div className="fb ai" style={{ marginTop: 12 }}>
+          <span className="lb">AI 피드백</span>
+          {entry.aiFeedback}
         </div>
       )}
     </article>

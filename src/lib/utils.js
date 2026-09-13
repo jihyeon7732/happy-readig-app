@@ -1,8 +1,11 @@
 /** 공백을 제외한 글자 수 */
 export const countChars = (s = '') => s.replace(/\s/g, '').length;
 
-export const MIN_CHARS = 400;
-export const MAX_CHARS = 600;
+/** 공백을 포함한 글자 수 (일지 분량 기준용) */
+export const countCharsAll = (s = '') => s.length;
+
+export const MIN_CHARS = 300;
+export const MAX_CHARS = 500;
 
 /** 혼동하기 쉬운 글자(O,0,I,1)를 뺀 영문 대문자+숫자 4자리 */
 const PW_POOL = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -41,7 +44,7 @@ export function mergeRanges(ranges = []) {
   return out;
 }
 
-/** 본문 문자열을 하이라이트 구간에 따라 조각으로 나눔 */
+/** 본문 문자열을 하이라이트 구간에 따라 조각으로 나눔 (각 조각의 start/end 포함) */
 export function splitByRanges(text = '', ranges = []) {
   const merged = mergeRanges(ranges);
   const parts = [];
@@ -49,11 +52,11 @@ export function splitByRanges(text = '', ranges = []) {
   for (const r of merged) {
     const s = Math.max(0, Math.min(r.start, text.length));
     const e = Math.max(s, Math.min(r.end, text.length));
-    if (s > cur) parts.push({ text: text.slice(cur, s), mark: false });
-    if (e > s) parts.push({ text: text.slice(s, e), mark: true });
+    if (s > cur) parts.push({ text: text.slice(cur, s), mark: false, start: cur, end: s });
+    if (e > s) parts.push({ text: text.slice(s, e), mark: true, start: s, end: e });
     cur = e;
   }
-  if (cur < text.length) parts.push({ text: text.slice(cur), mark: false });
+  if (cur < text.length) parts.push({ text: text.slice(cur), mark: false, start: cur, end: text.length });
   return parts;
 }
 

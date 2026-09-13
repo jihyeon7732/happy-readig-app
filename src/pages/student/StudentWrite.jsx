@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { listSessions, getEntry, submitEntry } from '../../lib/db';
 import HighlightBody from '../../components/HighlightBody';
 import { Field, Spinner, StampMini, useToast, Empty } from '../../components/ui';
-import { countChars, MIN_CHARS, MAX_CHARS, fmtDate, load, save, drop } from '../../lib/utils';
+import { countCharsAll, MIN_CHARS, MAX_CHARS, fmtDate, load, save, drop } from '../../lib/utils';
 
 const blank = { bookTitle: '', pageStart: '', pageEnd: '', keywords: ['', '', ''], body: '' };
 
@@ -55,7 +55,7 @@ export default function StudentWrite({ student }) {
   }, [sessionId, student.id]);
 
   const session = sessions.find((s) => s.id === sessionId);
-  const chars = countChars(form.body);
+  const chars = countCharsAll(form.body);
   const tooShort = chars < MIN_CHARS;
   const full = chars >= MAX_CHARS;
   const canSubmit =
@@ -82,7 +82,7 @@ export default function StudentWrite({ student }) {
 
   const setBody = (e) => {
     const value = e.target.value;
-    if (countChars(value) > MAX_CHARS && value.length > form.body.length) {
+    if (countCharsAll(value) > MAX_CHARS && value.length > form.body.length) {
       toast(`${MAX_CHARS}자까지만 쓸 수 있어요.`, 'bad');
       return;
     }
@@ -194,7 +194,7 @@ export default function StudentWrite({ student }) {
           </div>
           <div className="row" style={{ justifyContent: 'space-between' }}>
             <span className={`counter ${full ? 'over' : tooShort ? '' : 'ok'}`}>
-              공백 제외 {chars}자 {tooShort ? `· ${MIN_CHARS - chars}자 더 필요해요` : full ? '· 여기까지예요' : '· 제출할 수 있어요'}
+              공백 포함 {chars}자 {tooShort ? `· ${MIN_CHARS - chars}자 더 필요해요` : full ? '· 여기까지예요' : '· 제출할 수 있어요'}
             </span>
             <span className="counter">
               {MIN_CHARS}~{MAX_CHARS}자

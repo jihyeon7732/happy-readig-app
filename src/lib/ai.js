@@ -1,4 +1,4 @@
-import { countChars } from './utils';
+import { countChars, MIN_CHARS } from './utils';
 
 /* ---------------------------------------------------------------
  * 규칙 기반 엔진
@@ -35,7 +35,7 @@ export function analyzeEntry(body = '') {
   const flatEmotion = emotionHits > 0 && connection === 0 && reasonHits === 0;
 
   let level = 'high';
-  if (summaryOnly || flatEmotion || len < 400) level = 'low';
+  if (summaryOnly || flatEmotion || len < MIN_CHARS) level = 'low';
 
   return {
     len,
@@ -56,8 +56,8 @@ export function ruleFeedback(body = '', keywords = []) {
   const a = analyzeEntry(body);
   const tips = [];
 
-  if (a.len < 400) {
-    tips.push(`지금은 ${a.len}자예요. 400자를 채우려면 생각을 한 겹 더 풀어 써야 합니다.`);
+  if (a.len < MIN_CHARS) {
+    tips.push(`지금은 ${a.len}자예요. ${MIN_CHARS}자를 채우려면 생각을 한 겹 더 풀어 써야 합니다.`);
   }
   if (a.summaryOnly) {
     tips.push('책 내용 정리가 대부분이에요. 요약은 3분의 1로 줄이고, 나머지는 "나는 이 장면을 보고 ~라고 생각했다"처럼 자신의 판단을 써 보세요.');
